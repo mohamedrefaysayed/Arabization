@@ -16,35 +16,17 @@ class TextToSpeachCubit extends Cubit<TextToSpeachState> {
 
 
   TextToSpeachCubit() : super(TextToSpeachInitial());
-  Future selectLanguage(context) async {
-    // Define a list of languages to choose from
-    final List<String> languages = ['English', 'Arabic'];
 
-    // Show a dialog box with the list of languages
-  result_Language = (await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: Text('Select Language'),
-          children: languages
-              .map((lang) => SimpleDialogOption(
-            onPressed: () {
-              emit(TextToSpeachInitial());
-              Navigator.pop(context, lang);
-            },
-            child: Text(lang),
-          ))
-              .toList(),
-        );
-      },
-    ))!;
-    if (result_Language == 'Arabic') {
-      mytextalign = TextAlign.end;
-    } else {
-      mytextalign = TextAlign.start;
+   selectLanguage(lang) {
+     result_Language = lang;
+     if (lang == 'Arabic') {
+       mytextalign = TextAlign.end;
+     } else {
+       mytextalign = TextAlign.start;
+     }
+     emit(TextToSpeachInitial());
 
-    }
-  }
+   }
 
   Future speak() async {
     if (result_Language == 'Arabic') {
@@ -61,6 +43,10 @@ class TextToSpeachCubit extends Cubit<TextToSpeachState> {
 
   updateText(val){
     text = val;
+    emit(TextToSpeachInitial());
+  }
+  reset(){
+    text = '';
     emit(TextToSpeachInitial());
   }
 }

@@ -16,45 +16,39 @@ class SpeachToTextCubit extends Cubit<SpeachToTextState> {
 
   SpeachToTextCubit() : super(SpeachToTextInitial());
 
-  Future selectLanguage(context) async {
-    // Define a list of languages to choose from
-    final List<String> languages = ['English', 'Arabic'];
-
-    // Show a dialog box with the list of languages
-    result_Language = (await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: Text('Select Language'),
-          children: languages
-              .map((lang) => SimpleDialogOption(
-            onPressed: () {
-              emit(SpeachToTextInitial());
-              Navigator.pop(context, lang);
-            },
-            child: Text(lang),
-          ))
-              .toList(),
-        );
-      },
-    ))!;
-
-    if (result_Language == 'Arabic') {
+  selectLanguage(lang) {
+    result_Language = lang;
+    if (lang == 'Arabic') {
       mytextalign = TextAlign.end;
     } else {
       mytextalign = TextAlign.start;
-
     }
+    emit(SpeachToTextInitial());
+
   }
 
   listen(language,context) async {
-    if (!SpeachToTextCubit.isListening) {
+    if (!isListening) {
       isListening = true;
       emit(SpeachToTextInitial());
       // Show language selection dialog
       bool available = await speech.initialize(
-        onStatus: (language) => print('onStatus: $language'),
-        onError: (language) => print('onError: $language'),
+        onStatus: (language) {
+          print('onStatus: $language');
+          if(language == "notListening"){
+            isListening = false;
+            emit(SpeachToTextInitial());
+          }
+          if(language == "Listening"){
+            isListening = true;
+            emit(SpeachToTextInitial());
+          }
+          },
+        onError: (language) {
+          print('onError: $language');
+          isListening = false;
+          emit(SpeachToTextInitial());
+        }
       );
       if (available) {
        await speech.listen(
@@ -65,13 +59,9 @@ class SpeachToTextCubit extends Cubit<SpeachToTextState> {
           },
           localeId: language,
         );
-        isListening = false;
       } else {
 
-        speech.stop().whenComplete(() => (){
-          isListening = false;
-          emit(SpeachToTextInitial());
-        });
+        speech.stop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Microphone permission not granted")),
         );
@@ -79,9 +69,9 @@ class SpeachToTextCubit extends Cubit<SpeachToTextState> {
       }
 
 
-    } else {
-      isListening = false;
-      emit(SpeachToTextInitial());    }
+    }
+
+
   }
 
   reset(){
